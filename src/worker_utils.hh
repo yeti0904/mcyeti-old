@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
+#include <vector>
 using std::string;
+using std::vector;
 
-void disconnectClient(int sock, string reason, string username);
-void messageClient(int sock, string message);
+void disconnectClient(int sock, vector <int> &sockets, string reason, string username);
+int messageClient(int sock, string message);
 void messageClientRaw(int sock, char message[64]);

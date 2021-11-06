@@ -11,7 +11,7 @@
 using std::string;
 using std::vector;
 
-void disconnectClient(int sock, string reason, string username) {
+void disconnectClient(int sock, vector <int> &sockets, string reason, string username) {
 	uint8_t byte = 0x0E;
 	char str[64];
 	memcpy(str, padString(reason).c_str(), 64);
@@ -29,17 +29,26 @@ void disconnectClient(int sock, string reason, string username) {
 	else {
 		printf("[%s] %s kicked: %s\n", timen, username.c_str(), reason.c_str());
 	}
+
+	// remove socket from list
+	for (size_t i = 0; i<sockets.size(); ++i) {
+		if (sockets[i] == sock) {
+			sockets.erase(sockets.begin() + i);
+		}
+	}
 }
 
-void messageClient(int sock, string message) {
+int messageClient(int sock, string message) {
 	char msg[64];
 	memcpy(msg, padString(message).c_str(), 64);
 	uint8_t byte = 0x0d;
 	send(sock, &byte, 1, MSG_NOSIGNAL);
 	byte = 0;
 	send(sock, &byte, 1, MSG_NOSIGNAL);
-	send(sock, &msg, 64, MSG_NOSIGNAL);
 	printf("[%s] %s\n", timen, message.c_str());
+	if (send(sock, &msg, 64, MSG_NOSIGNAL) != 64)
+		return 1;
+	else return 0;
 }
 
 void messageClientRaw(int sock, char message[64]) {

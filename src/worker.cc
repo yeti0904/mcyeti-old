@@ -63,12 +63,16 @@ void worker(int sock, Properties props, string salt, vector <int> &client_socket
 					recv(sock, &tmpByte, 1, 0);
 					recv(sock, &tmpString, 64, 0);
 					for (size_t i = 0; i<client_sockets.size(); ++i) {
-						messageClient(client_sockets[i], client.username + ": " + depadString(tmpString));
+						if (
+							messageClient(client_sockets[i], client.username + ": " + depadString(tmpString))
+						== 1) {
+							disconnectClient(sock, client_sockets, "left the game", client.username);
+						}
 					}
 					break;
 				}
 				default: {
-					disconnectClient(sock, "Unexpected packet: " + to_string(packetID), "");
+					disconnectClient(sock, client_sockets, "Unexpected packet: " + to_string(packetID), "");
 					clientConnected = false;
 				}
 			}
@@ -79,18 +83,21 @@ void worker(int sock, Properties props, string salt, vector <int> &client_socket
 					string username;
 					string mppass;
 					recv(sock, &tmpByte, 1, 0); // protocol version
-					if (tmpByte != 0x07) disconnectClient(sock, "Old protocol version", "");
+					if (tmpByte != 0x07) disconnectClient(sock, client_sockets, "Old protocol version", "");
 					recv(sock, &tmpString, 64, 0);                           // username
 					username = depadString(tmpString);
 					recv(sock, &tmpString, 64, 0);                           // mppass
 					mppass = depadString(tmpString);
 					recv(sock, &tmpByte, 1, 0);                              // unused
 					if (md5(salt + username) != mppass)
-						disconnectClient(sock, "Forged mppass", username);
+						disconnectClient(sock, client_sockets, "Forged mppass", username);
 					
 					// send server identification
 					tmpByte = 0x00;                                          // Packet ID
-					send(sock, &tmpByte, 1, MSG_NOSIGNAL);
+					if (send(sock, &tmpByte, 1, MSG_NOSIGNAL) != 1) {
+						disconnectClient(sock, client_sockets, "left the game", client.username);
+						clientConnected = false;
+					}
 					tmpByte = 0x07;                                          // Protocol version
 					send(sock, &tmpByte, 1, MSG_NOSIGNAL);
 					memcpy(tmpString, padString(props["name"]).c_str(), 64); // Server name
@@ -109,7 +116,7 @@ void worker(int sock, Properties props, string salt, vector <int> &client_socket
 					break;
 				}
 				default: {
-					disconnectClient(sock, "Unexpected packet: " + to_string(packetID), "");
+					disconnectClient(sock, client_sockets, "Unexpected packet: " + to_string(packetID), "");
 					clientConnected = false;
 				}
 			}
