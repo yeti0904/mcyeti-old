@@ -90,15 +90,15 @@ void worker(int sock, Properties props, string salt, vector <int> &client_socket
 					
 					// send server identification
 					tmpByte = 0x00;                                          // Packet ID
-					send(sock, &tmpByte, 1, 0);
+					send(sock, &tmpByte, 1, MSG_NOSIGNAL);
 					tmpByte = 0x07;                                          // Protocol version
-					send(sock, &tmpByte, 1, 0);
+					send(sock, &tmpByte, 1, MSG_NOSIGNAL);
 					memcpy(tmpString, padString(props["name"]).c_str(), 64); // Server name
-					send(sock, tmpString, 64, 0);
+					send(sock, tmpString, 64, MSG_NOSIGNAL);
 					memcpy(tmpString, padString(props["motd"]).c_str(), 64); // Server MOTD
-					send(sock, tmpString, 64, 0);
+					send(sock, tmpString, 64, MSG_NOSIGNAL);
 					tmpByte = 0x00;                                          // User type
-					send(sock, &tmpByte, 1, 0);
+					send(sock, &tmpByte, 1, MSG_NOSIGNAL);
 					clientIdentified = true;
 					client_sockets.push_back(sock);
 					client.username = username;

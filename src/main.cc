@@ -84,8 +84,6 @@ int main(void) {
 	printf("[%s] Listening on %s:%s\n", timen, inet_ntoa(server_info.sin_addr), props["port"].c_str());
 
 	// variables
-	uint16_t onlinePlayers = 0;
-	bool     heartneatRun  = true;
 	string   serverSalt    = generateSalt();
 
 	// Listen loop
@@ -101,10 +99,11 @@ int main(void) {
 	printf("[%s] Generated server salt: %s\n", timen, serverSalt.c_str());
 	
 	// Set up heartbeat
-	/*if (props["public"] == "true") {
-		thread heartbeatThread(heartbeat, props, serverSalt, ref(client_sockets), ref(run));
+	thread heartbeatThread;
+	if (props["public"] == "true") {
+		heartbeatThread = thread(heartbeat, props, serverSalt, ref(client_sockets), ref(run));
 	}
-	printf("[%s] Started heartbeat thread\n", timen);*/
+	printf("[%s] Started heartbeat thread\n", timen);
 
 	while (run) {
 		isock = accept(sock, NULL, NULL);
@@ -112,6 +111,11 @@ int main(void) {
 		client_ip = inet_ntoa(client_info.sin_addr);
 		printf("[%s] %s connected to the server.\n", timen, client_ip.c_str());
 		client_threads.push_back(thread(worker, isock, props, serverSalt, ref(client_sockets)));
+	}
+
+	if (props["public"] == "true") heartbeatThread.join();
+	for (size_t i = 0; i<client_threads.size(); ++i) {
+		client_threads[i].detach();
 	}
 
 	// end of program

@@ -15,8 +15,8 @@ void disconnectClient(int sock, string reason, string username) {
 	uint8_t byte = 0x0E;
 	char str[64];
 	memcpy(str, padString(reason).c_str(), 64);
-	send(sock, &byte, 1, 0);
-	send(sock, &str, 64, 0);
+	send(sock, &byte, 1, MSG_NOSIGNAL);
+	send(sock, &str, 64, MSG_NOSIGNAL);
 
 	// log disconnection
 	if (username == "") {
@@ -35,18 +35,18 @@ void messageClient(int sock, string message) {
 	char msg[64];
 	memcpy(msg, padString(message).c_str(), 64);
 	uint8_t byte = 0x0d;
-	send(sock, &byte, 1, 0);
+	send(sock, &byte, 1, MSG_NOSIGNAL);
 	byte = 0;
-	send(sock, &byte, 1, 0);
-	send(sock, &msg, 64, 0);
+	send(sock, &byte, 1, MSG_NOSIGNAL);
+	send(sock, &msg, 64, MSG_NOSIGNAL);
 	printf("[%s] %s\n", timen, message.c_str());
 }
 
 void messageClientRaw(int sock, char message[64]) {
 	uint8_t byte = 0x0d;
-	send(sock, &byte, 1, 0);
+	send(sock, &byte, 1, MSG_NOSIGNAL);
 	byte = 0;
-	send(sock, &byte, 1, 0);
-	send(sock, &message, 64, 0);
+	send(sock, &byte, 1, MSG_NOSIGNAL);
+	send(sock, &message, 64, MSG_NOSIGNAL);
 	printf("[%s] %s\n", timen, depadString(message).c_str());
 }
