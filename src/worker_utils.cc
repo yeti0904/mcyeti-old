@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include "util.hh"
+#include "worker_utils.hh"
 #define timen currentTime().c_str()
 using std::string;
 using std::vector;
@@ -35,17 +36,20 @@ void disconnectClient(int sock, vector <int> &sockets, string reason, string use
 		if (sockets[i] == sock) {
 			sockets.erase(sockets.begin() + i);
 		}
+		else {
+			messageClient(sockets[i], "&e" + username + " kicked: " + reason, false);
+		}
 	}
 }
 
-int messageClient(int sock, string message) {
+int messageClient(int sock, string message, bool log) {
 	char msg[64];
 	memcpy(msg, padString(message).c_str(), 64);
 	uint8_t byte = 0x0d;
 	send(sock, &byte, 1, MSG_NOSIGNAL);
 	byte = 0;
 	send(sock, &byte, 1, MSG_NOSIGNAL);
-	printf("[%s] %s\n", timen, message.c_str());
+	if (log) printf("[%s] %s\n", timen, message.c_str());
 	if (send(sock, &msg, 64, MSG_NOSIGNAL) != 64)
 		return 1;
 	else return 0;

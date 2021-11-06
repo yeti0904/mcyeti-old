@@ -64,9 +64,10 @@ void worker(int sock, Properties props, string salt, vector <int> &client_socket
 					recv(sock, &tmpString, 64, 0);
 					for (size_t i = 0; i<client_sockets.size(); ++i) {
 						if (
-							messageClient(client_sockets[i], client.username + ": " + depadString(tmpString))
+							messageClient(client_sockets[i], client.username + ": " + depadString(tmpString), false)
 						== 1) {
 							disconnectClient(sock, client_sockets, "left the game", client.username);
+							clientConnected = false;
 						}
 					}
 					break;
@@ -89,8 +90,10 @@ void worker(int sock, Properties props, string salt, vector <int> &client_socket
 					recv(sock, &tmpString, 64, 0);                           // mppass
 					mppass = depadString(tmpString);
 					recv(sock, &tmpByte, 1, 0);                              // unused
-					if (md5(salt + username) != mppass)
+					if (md5(salt + username) != mppass) {
 						disconnectClient(sock, client_sockets, "Forged mppass", username);
+						clientConnected = false;
+					}
 					
 					// send server identification
 					tmpByte = 0x00;                                          // Packet ID
@@ -111,7 +114,7 @@ void worker(int sock, Properties props, string salt, vector <int> &client_socket
 					client.username = username;
 
 					for (size_t i = 0; i<client_sockets.size(); ++i) {
-						messageClient(client_sockets[i], client.username + " joined the game");
+						messageClient(client_sockets[i], "&e" + client.username + " joined the game", false);
 					}
 					break;
 				}

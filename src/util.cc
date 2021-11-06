@@ -54,7 +54,10 @@ string md5(string src) {
 
 string generateSalt() {
 	string str;
-	srand((int)time(NULL));
+	time_t epochtime = time(NULL);
+	struct tm *loctime = localtime(&epochtime);
+	time_t finaltime = mktime(loctime);
+	srand(finaltime);
 	for (uint8_t i = 0; i<8; ++i) {
 		str += 'a' + rand()%26;
 	}

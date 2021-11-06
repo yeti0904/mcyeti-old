@@ -13,6 +13,7 @@
 #include "util.hh"
 #include "worker.hh"
 #include "heartbeat.hh"
+#include "player.hh"
 #define timen currentTime().c_str()
 using std::thread;
 using std::vector;
@@ -94,6 +95,7 @@ int main(void) {
 	sockaddr_in     client_info = { 0 };
 	socklen_t       addrsize = sizeof(client_info);
 	string          client_ip;
+	player          newClient;
 
 	printf("Owner mppass: %s\n", md5(serverSalt + "MESYETI").c_str());
 	printf("0904 mppass: %s\n", md5(serverSalt + "yeti0904").c_str());
