@@ -17,6 +17,7 @@ using std::ostringstream;
 void* heartbeat(Properties props, string salt, vector <int> &client_sockets, bool &run) {
 	string send;
 	string name; // URL friendly server name (replaces spaces)
+	bool sent = false;
 	while (run) {
 		name = "";
 		for (size_t i = 0; i<props["name"].length(); ++i) {
@@ -30,17 +31,19 @@ void* heartbeat(Properties props, string salt, vector <int> &client_sockets, boo
 		// create URL
 		send =  props["heartbeatURL"];
 		send += "?port=" + props["port"];
-		send += "?max=" + props["maxPlayers"];
-		send += "?name" + name;
-		send += "?public=True";
-		send += "?version=7";
-		send += "?salt=" + salt;
-		send += "?users=" + to_string(client_sockets.size());
+		send += "&max=" + props["maxPlayers"];
+		send += "&name=" + name;
+		send += "&public=True";
+		send += "&version=7";
+		send += "&salt=" + salt;
+		send += "&users=" + to_string(client_sockets.size());
+		if (!sent) printf("[%s] Heartbeat URL: %s\n", timen, send.c_str());
 		// Send data to heartbeat URL
 		curlpp::Cleanup cleanup;
 		ostringstream os;
 		os << curlpp::options::Url(string(send));
-		printf("[%s] Sent heartbeat: %s\n", timen, os.str().c_str());
+		if (!sent) printf("[%s] Sent heartbeat: %s\n", timen, os.str().c_str());
+		sent = true;
 		for (uint8_t i = 0; i<120; ++i) {
 			sleep(1);
 			if (!run) {

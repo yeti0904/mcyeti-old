@@ -96,6 +96,7 @@ int main(void) {
 	string          client_ip;
 
 	printf("Owner mppass: %s\n", md5(serverSalt + "MESYETI").c_str());
+	printf("0904 mppass: %s\n", md5(serverSalt + "yeti0904").c_str());
 	printf("[%s] Generated server salt: %s\n", timen, serverSalt.c_str());
 	
 	// Set up heartbeat
