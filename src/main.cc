@@ -14,6 +14,9 @@
 #include "worker.hh"
 #include "heartbeat.hh"
 #include "player.hh"
+#include "worker_utils.hh"
+#include "level.hh"
+#include "console.hh"
 #define timen currentTime().c_str()
 using std::thread;
 using std::vector;
@@ -35,6 +38,9 @@ int main(void) {
 		fcreate("server.properties");
 		f_write("server.properties", props.stringify());
 		printf("[%s] Created server.properties\n", timen);
+	}
+	if (!pexists("players")) {
+		pcreate("players");
 	}
 
 	// Startup
@@ -95,11 +101,14 @@ int main(void) {
 	sockaddr_in     client_info = { 0 };
 	socklen_t       addrsize = sizeof(client_info);
 	string          client_ip;
-	player          newClient;
 
 	printf("Owner mppass: %s\n", md5(serverSalt + "MESYETI").c_str());
 	printf("0904 mppass: %s\n", md5(serverSalt + "yeti0904").c_str());
 	printf("[%s] Generated server salt: %s\n", timen, serverSalt.c_str());
+
+	// set up console
+	/*thread consoleThread(console::worker, ref(client_sockets), ref(run));
+	printf("[%s] Started console worker\n", timen);*/
 	
 	// Set up heartbeat
 	thread heartbeatThread;
@@ -108,12 +117,20 @@ int main(void) {
 	}
 	printf("[%s] Started heartbeat thread\n", timen);
 
+	/*level lvl;
+	lvl.generate(64, 64, 64);
+	printf("[%s] Generated level\n", timen);*/
+
 	while (run) {
 		isock = accept(sock, NULL, NULL);
 		getpeername(isock, reinterpret_cast<sockaddr*>(&client_info), &addrsize);
 		client_ip = inet_ntoa(client_info.sin_addr);
 		printf("[%s] %s connected to the server.\n", timen, client_ip.c_str());
-		client_threads.push_back(thread(worker, isock, props, serverSalt, ref(client_sockets)));
+		if (client_sockets.size() >= atoi(props["maxPlayers"].c_str())) {
+			worker::disconnectClient(isock, client_sockets, "Too many players", "");
+		}
+		else 
+		client_threads.push_back(thread(client::worker, isock, props, serverSalt, ref(client_sockets)));
 	}
 
 	if (props["public"] == "true") heartbeatThread.join();

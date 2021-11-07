@@ -3,16 +3,19 @@
 #include <cstdint>
 #include <cstring>
 #include <ctime>
+#include <dotproperties.hh>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include "util.hh"
+#include "fs.hh"
+#include "player.hh"
 #include "worker_utils.hh"
 #define timen currentTime().c_str()
 using std::string;
 using std::vector;
 
-void disconnectClient(int sock, vector <int> &sockets, string reason, string username) {
+void worker::disconnectClient(int sock, vector <int> &sockets, string reason, string username) {
 	uint8_t byte = 0x0E;
 	char str[64];
 	memcpy(str, padString(reason).c_str(), 64);
@@ -37,12 +40,12 @@ void disconnectClient(int sock, vector <int> &sockets, string reason, string use
 			sockets.erase(sockets.begin() + i);
 		}
 		else {
-			messageClient(sockets[i], "&e" + username + " kicked: " + reason, false);
+			if (username != "") worker::messageClient(sockets[i], "&e" + username + " kicked: " + reason, false);
 		}
 	}
 }
 
-int messageClient(int sock, string message, bool log) {
+int worker::messageClient(int sock, string message, bool log) {
 	char msg[64];
 	memcpy(msg, padString(message).c_str(), 64);
 	uint8_t byte = 0x0d;
@@ -62,4 +65,12 @@ void messageClientRaw(int sock, char message[64]) {
 	send(sock, &byte, 1, MSG_NOSIGNAL);
 	send(sock, &message, 64, MSG_NOSIGNAL);
 	printf("[%s] %s\n", timen, depadString(message).c_str());
+}
+
+void worker::createPlayer(player user) {
+	fcreate("./players/" + user.username + ".properties");
+	Properties userprops;
+	userprops["rank"]   = "0";
+	userprops["banned"] = "false";
+	f_write("./players/" + user.username + ".properties", userprops.stringify());
 }

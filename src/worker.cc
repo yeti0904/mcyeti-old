@@ -6,18 +6,22 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include "fs.hh"
 #include "player.hh"
 #include "util.hh"
 #include "worker_utils.hh"
+#include "worker.hh"
 #define timen currentTime().c_str()
 using std::vector;
 using std::string;
 using std::to_string;
 
-void worker(int sock, Properties props, string salt, vector <int> &client_sockets) {
+void client::worker(int sock, Properties props, string salt, vector <int> &client_sockets) {
 	bool   clientIdentified = false;
 	bool   clientConnected  = true;
 	player client;
+
+	Properties playerProps;
 
 	client.online = true;
 	client.sock   = sock;
@@ -62,18 +66,21 @@ void worker(int sock, Properties props, string salt, vector <int> &client_socket
 				case 0x0d: { // message
 					recv(sock, &tmpByte, 1, 0);
 					recv(sock, &tmpString, 64, 0);
-					for (size_t i = 0; i<client_sockets.size(); ++i) {
+					if (clientConnected && (
+						depadString(tmpString)[0] != '/'
+					)) for (size_t i = 0; i<client_sockets.size(); ++i) {
 						if (
-							messageClient(client_sockets[i], client.username + ": " + depadString(tmpString), false)
+							worker::messageClient(client_sockets[i], client.username + ": " + depadString(tmpString), false)
 						== 1) {
-							disconnectClient(sock, client_sockets, "left the game", client.username);
+							worker::disconnectClient(sock, client_sockets, "left the game", client.username);
 							clientConnected = false;
 						}
+						printf("[%s] %s: %s\n", timen, client.username.c_str(), depadString(tmpString).c_str());
 					}
 					break;
 				}
 				default: {
-					disconnectClient(sock, client_sockets, "Unexpected packet: " + to_string(packetID), "");
+					worker::disconnectClient(sock, client_sockets, "Unexpected packet: " + to_string(packetID), "");
 					clientConnected = false;
 				}
 			}
@@ -84,21 +91,21 @@ void worker(int sock, Properties props, string salt, vector <int> &client_socket
 					string username;
 					string mppass;
 					recv(sock, &tmpByte, 1, 0); // protocol version
-					if (tmpByte != 0x07) disconnectClient(sock, client_sockets, "Old protocol version", "");
+					if (tmpByte != 0x07) worker::disconnectClient(sock, client_sockets, "Old protocol version", "");
 					recv(sock, &tmpString, 64, 0);                           // username
 					username = depadString(tmpString);
 					recv(sock, &tmpString, 64, 0);                           // mppass
 					mppass = depadString(tmpString);
 					recv(sock, &tmpByte, 1, 0);                              // unused
 					if (md5(salt + username) != mppass) {
-						disconnectClient(sock, client_sockets, "Forged mppass", username);
+						worker::disconnectClient(sock, client_sockets, "Your mppass is incorrect, log out and log back in again", username);
 						clientConnected = false;
 					}
 					
 					// send server identification
 					tmpByte = 0x00;                                          // Packet ID
 					if (send(sock, &tmpByte, 1, MSG_NOSIGNAL) != 1) {
-						disconnectClient(sock, client_sockets, "left the game", client.username);
+						worker::disconnectClient(sock, client_sockets, "left the game", client.username);
 						clientConnected = false;
 					}
 					tmpByte = 0x07;                                          // Protocol version
@@ -113,13 +120,27 @@ void worker(int sock, Properties props, string salt, vector <int> &client_socket
 					client_sockets.push_back(sock);
 					client.username = username;
 
+					playerProps.readFromFile("./players/" + client.username + ".properties");
+					if (playerProps["banned"] == "true") {
+						worker::disconnectClient(sock, client_sockets, "You're banned!", client.username);
+						clientConnected = false;
+					}
+
 					for (size_t i = 0; i<client_sockets.size(); ++i) {
-						messageClient(client_sockets[i], "&e" + client.username + " joined the game", false);
+						if (!fexists("./players/" + client.username + ".properties")) {
+							worker::messageClient(client_sockets[i], "&e" + client.username + " joined for the first time", false);
+							printf("[%s] %s joined for the first time\n", timen, client.username.c_str());
+							worker::createPlayer(client);
+						}
+						else {
+							worker::messageClient(client_sockets[i], "&e" + client.username + " joined the game", false);
+							printf("[%s] %s joined the game\n", timen, client.username.c_str());
+						}
 					}
 					break;
 				}
 				default: {
-					disconnectClient(sock, client_sockets, "Unexpected packet: " + to_string(packetID), "");
+					worker::disconnectClient(sock, client_sockets, "Unexpected packet: " + to_string(packetID), "");
 					clientConnected = false;
 				}
 			}
