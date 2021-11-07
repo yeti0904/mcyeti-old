@@ -109,8 +109,10 @@ void openupnpport(string sport) {
 		freeUPNPDevlist(devlist);
         FreeUPNPUrls(&urls);
 	}
-	freeUPNPDevlist(devlist);
-    FreeUPNPUrls(&urls);
+	else {
+		freeUPNPDevlist(devlist);
+		FreeUPNPUrls(&urls);
+	}
 
 	return;
 }

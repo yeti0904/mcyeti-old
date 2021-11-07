@@ -112,8 +112,8 @@ int main(void) {
 	printf("[%s] Generated server salt: %s\n", timen, serverSalt.c_str());
 
 	// set up console
-	/*thread consoleThread(console::worker, ref(client_sockets), ref(run));
-	printf("[%s] Started console worker\n", timen);*/
+	thread consoleThread(console::worker, ref(clients), ref(run));
+	printf("[%s] Started console worker\n", timen);
 	
 	// Set up heartbeat
 	thread heartbeatThread;
