@@ -117,7 +117,7 @@ void worker::sendNewPlayer(player user, int8_t playerID, vec3 spawnpos) {
 	int8_t   sbyte;
 	uint16_t shrt;
 	char     str[64];
-	byte = 0x09;
+	byte = 0x07;
 	send(user.sock, &byte, 1, MSG_NOSIGNAL);
 	send(user.sock, &playerID, 1, MSG_NOSIGNAL);
 	memcpy(str, padString(user.username).c_str(), 64);

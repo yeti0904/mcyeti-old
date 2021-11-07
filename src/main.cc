@@ -33,7 +33,7 @@ int main(void) {
 		props["port"]         = "25565";
 		props["motd"]         = "Hello!";
 		props["public"]       = "true";
-		props["heartbeatURL"] = "http://www.classicube.net/heartbeat.jsp";
+		props["heartbeatURL"] = "https://www.classicube.net/heartbeat.jsp";
 		props["maxPlayers"]   = "12";
 		fcreate("server.properties");
 		f_write("server.properties", props.stringify());

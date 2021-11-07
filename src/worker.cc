@@ -24,7 +24,7 @@ void client::worker(player client, unordered_map <string, level> maps, Propertie
 
 	Properties playerProps;
 
-	int8_t playerID = clients.size() + 1;
+	int8_t playerID = clients.size();
 
 	client.online = true;
 
