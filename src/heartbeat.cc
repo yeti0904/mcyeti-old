@@ -38,6 +38,7 @@ void* heartbeat(Properties props, string salt, vector <player> &clients, bool &r
 		send += "&version=7";
 		send += "&salt=" + salt;
 		send += "&users=" + to_string(clients.size());
+		send += "&software=MCYeti%20Testing";
 		if (!sent) printf("[%s] Heartbeat URL: %s\n", timen, send.c_str());
 		// Send data to heartbeat URL
 		curlpp::Cleanup cleanup;

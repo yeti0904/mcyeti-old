@@ -90,6 +90,10 @@ int main(void) {
 	printf("[%s] Startup complete\n", timen);
 	printf("[%s] Listening on %s:%s\n", timen, inet_ntoa(server_info.sin_addr), props["port"].c_str());
 
+	// attempt to port forward with upnp
+	printf("[%s] Attempting upnp port forwarding\n", timen);
+	openupnpport(props["port"]);
+
 	// variables
 	string   serverSalt    = generateSalt();
 
