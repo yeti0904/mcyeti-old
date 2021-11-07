@@ -2,7 +2,8 @@
 #include <vector>
 #include <string>
 #include <cstdint>
+#include "player.hh"
 using std::string;
 using std::vector;
 
-void* heartbeat(Properties props, string salt, vector <int> &client_sockets, bool &run);
+void* heartbeat(Properties props, string salt, vector <player> &clients, bool &run);

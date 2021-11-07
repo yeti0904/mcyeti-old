@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <cstdint>
+#include <dotproperties.hh>
 using std::string;
 
 struct vec3 {
@@ -13,4 +14,5 @@ struct player {
 	string username;
 	bool online;
 	vec3 pos;
+	Properties props;
 };

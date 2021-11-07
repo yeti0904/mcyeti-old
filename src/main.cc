@@ -96,8 +96,9 @@ int main(void) {
 	// Listen loop
 	bool            run = true;
 	int             isock;
+	player          iclient;
 	vector <thread> client_threads;
-	vector <int>    client_sockets;
+	vector <player>    clients;
 	sockaddr_in     client_info = { 0 };
 	socklen_t       addrsize = sizeof(client_info);
 	string          client_ip;
@@ -113,7 +114,7 @@ int main(void) {
 	// Set up heartbeat
 	thread heartbeatThread;
 	if (props["public"] == "true") {
-		heartbeatThread = thread(heartbeat, props, serverSalt, ref(client_sockets), ref(run));
+		heartbeatThread = thread(heartbeat, props, serverSalt, ref(clients), ref(run));
 	}
 	printf("[%s] Started heartbeat thread\n", timen);
 
@@ -123,14 +124,15 @@ int main(void) {
 
 	while (run) {
 		isock = accept(sock, NULL, NULL);
+		iclient.sock = isock;
 		getpeername(isock, reinterpret_cast<sockaddr*>(&client_info), &addrsize);
 		client_ip = inet_ntoa(client_info.sin_addr);
 		printf("[%s] %s connected to the server.\n", timen, client_ip.c_str());
-		if (client_sockets.size() >= atoi(props["maxPlayers"].c_str())) {
-			worker::disconnectClient(isock, client_sockets, "Too many players", "");
+		if (clients.size() >= atoi(props["maxPlayers"].c_str())) {
+			worker::disconnectClient(iclient, clients, "Too many players", "");
 		}
 		else 
-		client_threads.push_back(thread(client::worker, isock, props, serverSalt, ref(client_sockets)));
+		client_threads.push_back(thread(client::worker, iclient, props, serverSalt, ref(clients)));
 	}
 
 	if (props["public"] == "true") heartbeatThread.join();

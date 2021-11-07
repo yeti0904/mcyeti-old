@@ -8,13 +8,14 @@
 #include <dotproperties.hh>
 #include <unistd.h>
 #include "util.hh"
+#include "player.hh"
 using std::string;
 using std::vector;
 using std::to_string;
 using std::ostringstream;
 #define timen currentTime().c_str()
 
-void* heartbeat(Properties props, string salt, vector <int> &client_sockets, bool &run) {
+void* heartbeat(Properties props, string salt, vector <player> &clients, bool &run) {
 	string send;
 	string name; // URL friendly server name (replaces spaces)
 	bool sent = false;
@@ -36,7 +37,7 @@ void* heartbeat(Properties props, string salt, vector <int> &client_sockets, boo
 		send += "&public=True";
 		send += "&version=7";
 		send += "&salt=" + salt;
-		send += "&users=" + to_string(client_sockets.size());
+		send += "&users=" + to_string(clients.size());
 		if (!sent) printf("[%s] Heartbeat URL: %s\n", timen, send.c_str());
 		// Send data to heartbeat URL
 		curlpp::Cleanup cleanup;

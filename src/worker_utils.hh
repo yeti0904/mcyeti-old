@@ -6,8 +6,8 @@ using std::string;
 using std::vector;
 
 namespace worker {
-	void disconnectClient(int sock, vector <int> &sockets, string reason, string username);
-	int messageClient(int sock, string message, bool log);
+	void disconnectClient(player client, vector <player> &clients, string reason, string username);
+	int messageClient(player client, string message, bool log);
 	void messageClientRaw(int sock, char message[64]);
 	void createPlayer(player user);
 }
