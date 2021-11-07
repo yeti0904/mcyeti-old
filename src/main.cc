@@ -118,9 +118,9 @@ int main(void) {
 	}
 	printf("[%s] Started heartbeat thread\n", timen);
 
-	/*level lvl;
-	lvl.generate(64, 64, 64);
-	printf("[%s] Generated level\n", timen);*/
+	unordered_map <string, level> maps;
+	maps["main"].generate(0, 0, 0);
+	printf("[%s] Generated level\n", timen);
 
 	while (run) {
 		isock = accept(sock, NULL, NULL);
@@ -132,7 +132,7 @@ int main(void) {
 			worker::disconnectClient(iclient, clients, "Too many players", "");
 		}
 		else 
-		client_threads.push_back(thread(client::worker, iclient, props, serverSalt, ref(clients)));
+		client_threads.push_back(thread(client::worker, iclient, maps, props, serverSalt, ref(clients)));
 	}
 
 	if (props["public"] == "true") heartbeatThread.join();

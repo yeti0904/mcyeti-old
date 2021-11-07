@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
+#include <unordered_map>
 #include <vector>
 #include <dotproperties.hh>
 #include <sys/types.h>
@@ -15,12 +16,15 @@
 using std::vector;
 using std::string;
 using std::to_string;
+using std::unordered_map;
 
-void client::worker(player client, Properties props, string salt, vector <player> &clients) {
+void client::worker(player client, unordered_map <string, level> maps, Properties props, string salt, vector <player> &clients) {
 	bool   clientIdentified = false;
 	bool   clientConnected  = true;
 
 	Properties playerProps;
+
+	int8_t playerID = clients.size() + 1;
 
 	client.online = true;
 
@@ -57,8 +61,14 @@ void client::worker(player client, Properties props, string salt, vector <player
 					recv(client.sock, &tmpVec3.x, 2, 0);
 					recv(client.sock, &tmpVec3.y, 2, 0);
 					recv(client.sock, &tmpVec3.z, 2, 0);
-					recv(client.sock, &tmpByte, 1, 0);
-					recv(client.sock, &tmpByte, 1, 0);
+					recv(client.sock, &tmpVec3.yaw, 1, 0);
+					recv(client.sock, &tmpVec3.pitch, 1, 0);
+					client.pos = tmpVec3;
+					for (size_t i = 0; i<clients.size(); ++i) {
+						if (clients[i].sock != client.sock) {
+							worker::sendPlayerPosUpdate(clients[i], playerID, client.pos);
+						}
+					}
 					break;
 				}
 				case 0x0d: { // message
@@ -70,7 +80,7 @@ void client::worker(player client, Properties props, string salt, vector <player
 						if (
 							worker::messageClient(clients[i], client.username + ": " + depadString(tmpString), false)
 						== 1) {
-							worker::disconnectClient(client, clients, "left the game", client.username);
+							if (clients[i].sock == client.sock) worker::disconnectClient(client, clients, "left the game", client.username);
 							clientConnected = false;
 						}
 						if (clientConnected) printf("[%s] %s: %s\n", timen, client.username.c_str(), depadString(tmpString).c_str());
@@ -124,7 +134,18 @@ void client::worker(player client, Properties props, string salt, vector <player
 						clientConnected = false;
 					}
 
+					// send map
+					worker::startLoadingLevel(client);
+					worker::endLoadingLevel(client, maps["main"]);
+
 					for (size_t i = 0; i<clients.size(); ++i) {
+						if (clients[i].sock == client.sock) {
+							worker::sendNewPlayer(client, -1, client.pos);
+						}
+						else {
+							worker::sendNewPlayer(client, playerID, client.pos);
+						}
+
 						if (!fexists("./players/" + client.username + ".properties")) {
 							worker::messageClient(clients[i], "&e" + client.username + " joined for the first time", false);
 							printf("[%s] %s joined for the first time\n", timen, client.username.c_str());

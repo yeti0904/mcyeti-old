@@ -4,6 +4,7 @@
 #include <cstring>
 #include <string>
 #include <openssl/md5.h>
+#include <openssl/rand.h>
 using std::string;
 
 const string currentTime() {
@@ -53,19 +54,13 @@ string md5(string src) {
 }
 
 string generateSalt() {
-	string str;
-	time_t epochtime = time(NULL);
-	struct tm *loctime = localtime(&epochtime);
-	time_t finaltime = mktime(loctime);
-	srand(finaltime);
-	for (uint8_t i = 0; i<8; ++i) {
-		str += 'a' + rand()%26;
-	}
-	string ret;
-	char toAdd[64];
-	for (size_t i = 0; i<8; ++i) {
-		sprintf(toAdd, "%02x", str[i]);
-		ret += toAdd;
-	}
-	return ret;
+    unsigned char rand[8];
+    RAND_bytes(rand, 8);
+    string ret;
+    char toAdd[64];
+    for (size_t i = 0; i < 8; ++i) {
+        sprintf(toAdd, "%02x", rand[i]);
+        ret += toAdd;
+    }
+    return ret;
 }

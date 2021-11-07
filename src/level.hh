@@ -15,18 +15,17 @@ class level {
 	vec3 size;
 	uint8_t* raw;
 	uint8_t perbuild, pervisit;
-	unordered_map <int16_t, unordered_map <int16_t, unordered_map <int16_t, uint8_t>>> map;
+	unordered_map <uint16_t, unordered_map <uint16_t, unordered_map <uint16_t, uint8_t>>> map;
 
 	// functions
 	void generate(int16_t x, int16_t y, int16_t z) {
 		size.x = x;
 		size.y = y;
 		size.z = z;
-		for (int16_t i = 0; i<x; ++x) {
+		for (int16_t i = 0; i<z; ++i) {
 			for (int16_t j = 0; j<(int)round(y/2); ++j) {
-				for (int16_t k = 0; k<z; ++k) {
+				for (int16_t k = 0; k<y; ++k) {
 					map[i][j][k] = 1;
-					printf("Generating block %i\n", i+j+k);
 				}
 			}
 		}
