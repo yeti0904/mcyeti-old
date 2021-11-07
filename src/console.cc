@@ -22,7 +22,7 @@ void console::worker(vector <player> &clients, bool &run) {
 		if (input[0] != '/') {
 			for (size_t i = 0; i<clients.size(); ++i) {
 				worker::messageClient(clients[i], "(console): " + input, false);
-				printf("[%s] (console): %s\n", timen, input);
+				printf("[%s] (console): %s\n", timen, input.c_str());
 			}
 		}
 	}
